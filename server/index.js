@@ -8,31 +8,35 @@ dotenv.config();
 
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? '*' // Allow all origins in production
+    : 'http://localhost:3000',
+  credentials: true
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Connect to database
 connectDB();
 
-// Routes
+// Serve static assets in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+}
+
+// API Routes - Make sure these come before the catch-all route
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/todos', require('./routes/todoRoutes'));
 
-// Serve static assets in production
+// Catch-all route for React app - Make sure this comes after API routes
 if (process.env.NODE_ENV === 'production') {
-  // Set static folder
-  const buildPath = path.join(__dirname, '../client/build');
-  
-  // Log to verify the build path
-  console.log('Build path:', buildPath);
-  
-  app.use(express.static(buildPath));
-
-  // Handle React routing, return all requests to React app
-  app.get('/*', function(req, res) {
-    res.sendFile(path.join(buildPath, 'index.html'));
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../client/build/index.html'));
   });
 } else {
   app.get('/', (req, res) => {

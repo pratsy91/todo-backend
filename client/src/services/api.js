@@ -1,8 +1,12 @@
 import axios from 'axios';
 
-// Production URL - using relative path
+// In production, the API calls will be relative to the current domain
+const baseURL = process.env.NODE_ENV === 'production' 
+  ? `${window.location.origin}/api`  // This ensures we use the current domain
+  : 'http://localhost:5000/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -44,4 +48,4 @@ export const createTodo = (todo) => api.post('/todos', todo);
 export const updateTodo = (id, todo) => api.put(`/todos/${id}`, todo);
 export const deleteTodo = (id) => api.delete(`/todos/${id}`);
 
-export default api; 
+export default api;
